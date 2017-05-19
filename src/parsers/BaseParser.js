@@ -116,6 +116,7 @@ export class FixedSizeByteParser extends FixedSizeParser {
 
     constructor(options) {
         super(options)
+        this._byteLength = this._length
         this._length <<= 3
     }
 
@@ -199,17 +200,53 @@ export class RangedSizeByteParser extends RangedSizeParser {
     }
 }
 
-export class OptionalParser extends BaseParser {
+export class NestedParser extends BaseParser {
+
+    static init(options) {
+        logger.debug('NestedParser initialized')
+        return new NestedParser(options)
+    }
+
+    _parse(bits, offset, context) {
+        let result = new ParseResult(undefined, offset)
+        let innerResult = this._innerParser.parse(bits, offset, context)
+        result.update(innerResult)
+
+        return result
+    }
+
+    _build() {
+        this._innerParser.build()
+    }
+
+    _pre_parse(bits, offset, context) {
+        this._innerParser.pre_parse(bits, offset, context)
+    }
+
+    _post_parse(bits, offset, context) {
+        this._innerParser.post_parse(bits, offset, context)
+    }
+
+    _pre_build(bits, offset, context) {
+        this._innerParser.pre_build(bits, offset, context)
+    }
+
+    _post_build(bits, offset, context) {
+        this._innerParser.post_build(bits, offset, context)
+    }
+}
+
+export class OptionalParser extends NestedParser {
 
     static init(options) {
         logger.debug('OptionalParser initialized')
         return new OptionalParser(options)
     }
 
-    _parse(bits, offset) {
+    _parse(bits, offset, context) {
         let result = new ParseResult(undefined, offset)
         try {
-            let innerResult = this._innerParser.parse(bits, offset)
+            let innerResult = super.parse(bits, offset, context)
             result.update(innerResult)
         } catch (e) {
             // do nothing
