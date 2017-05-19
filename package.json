@@ -28,8 +28,10 @@
   },
   "homepage": "https://github.com/strawhatboy/node-construct#readme",
   "dependencies": {
-    "buffer-bits": "^0.0.4",
-    "lodash": "^4.17.4"
+    "buffer-bits": "^0.0.9",
+    "lodash": "^4.17.4",
+    "log4js": "^1.1.1",
+    "is-circular": "^1.0.1"
   },
   "devDependencies": {
     "babel-preset-latest": "^6.24.1",
