@@ -9,7 +9,7 @@ class LogFactory {
                 }
             ],
             levels: {
-                '[all]': 'INFO'
+                '[all]': 'DEBUG'
             }
         })
     }

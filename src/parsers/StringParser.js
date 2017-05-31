@@ -2,6 +2,7 @@ import { FixedSizeByteParser, RangedSizeByteParser, ParseResult } from './BasePa
 import { logFactory } from '../logger'
 import { OutOfRangeException } from '../exceptions'
 import Bits from 'buffer-bits'
+import _ from 'lodash'
 
 let logger = logFactory.getLogger(require('path').basename(__filename))
 
@@ -64,10 +65,12 @@ export class CStringParser extends RangedSizeByteParser {
 
     _stop(bits, offset, currentOffset, parsedLength, parsedBits /* byte */) {
         let result = super._stop(bits, offset, currentOffset, parsedLength, parsedBits)
-        if (_.includes(this._terminators, parsedBits.readInt())) {
+        let parsedValue = parsedBits.readInt()
+        logger.debug(`about to check if terminators ${JSON.stringify(this._terminators)} contains parsed byte: ${parsedValue}`)
+        if (_.includes(this._terminators, parsedValue)) {
             // met terminator, should stop
             logger.debug('got stop terminator, stopping parsing')
-            result = false
+            result = true
         }
 
         return result
@@ -87,24 +90,23 @@ export class PascalStringParser extends StringParser {
             throw new OutOfRangeException(this.constructor.name)
         }
         let _1stBits = Bits.from(bits, offset, 8)
-        let size = _1stBits.readUInt()
+        let size = _1stBits.readUInt() << 3
         logger.debug(`got size ${size} when parsing a PascalString`)
-        this._length = size
-        return super._parse(bits, offset)
+        this._length = size 
+        return super._parse(bits, offset + 8)
     }
 }
 
-export class GreedyString extends CStringParser {
+export class GreedyStringParser extends CStringParser {
 
     constructor(options) {
         super(options)
-        this._terminators = this._terminators || [] // no terminateor
+        this._terminators = [] // no terminateor
         this._range.upperBound = undefined // always no upperBound
     }
 
     static init(options) {
-        logger.debug('initializing StringParser with options: ' + JSON.stringify(options))
-        options.terminators = options.terminators || []
-        return new GreedyString(options)
+        logger.debug('initializing GreedyStringParser with options: ' + JSON.stringify(options))
+        return new GreedyStringParser(options)
     }
 }
