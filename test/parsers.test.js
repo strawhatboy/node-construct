@@ -7,6 +7,7 @@ var PascalStringParser = require('../lib/parsers/StringParser').PascalStringPars
 var GreedyStringParser = require('../lib/parsers/StringParser').GreedyStringParser;
 var FlagParser = require('../lib/parsers/ShortParser').FlagParser;
 var Bits = require('buffer-bits');
+var EOL = require('os').EOL;
 
 describe('IntParser', function() {
     it('should be able to parse integer', function() {
@@ -19,7 +20,7 @@ describe('IntParser', function() {
         var parseResult = struct.parse(bits, 0);
         var richString = parseResult.result.toRichString();
         //console.log(richString);
-        expect(richString).equals('[Container Object] \r\n\tone = 3\r\n\ttwo = 3\r\n');
+        expect(richString).equals('[Container Object] ' + EOL + '\tone = 3' + EOL + '\ttwo = 3' + EOL + '');
     });
 });
 
@@ -36,7 +37,7 @@ describe('StringParser', function() {
         var parseResult = struct.parse(bits, 0);
         var richString = parseResult.result.toRichString();
         //console.log(richString);
-        expect(richString).equals('[Container Object] \r\n\tone = 3\r\n\ttwo = \u003B\r\n\tthree = 7\r\n');
+        expect(richString).equals('[Container Object] ' + EOL + '\tone = 3' + EOL + '\ttwo = \u003B' + EOL + '\tthree = 7' + EOL + '');
     });
 
     describe('CStringParser', function() {
@@ -48,7 +49,7 @@ describe('StringParser', function() {
             var bits = Bits.from(Buffer.from('gg\x00666'), 0, 36);
             var parseResult = struct.parse(bits, 0);
             var richString = parseResult.result.toRichString();
-            expect(richString).equals('[Container Object] \r\n\tone = gg\x00\r\n');
+            expect(richString).equals('[Container Object] ' + EOL + '\tone = gg\x00' + EOL + '');
             // only 2 bytes and the stop char parsed
             expect(parseResult.nextOffset).equals(24);
         });
@@ -63,7 +64,7 @@ describe('StringParser', function() {
             var bits = Bits.from(Buffer.from('\x03g6gppqqpq'), 0, 64);
             var parseResult = struct.parse(bits, 0);
             var richString = parseResult.result.toRichString();
-            expect(richString).equals('[Container Object] \r\n\tone = g6g\r\n');
+            expect(richString).equals('[Container Object] ' + EOL + '\tone = g6g' + EOL + '');
             expect(parseResult.nextOffset).equals(32);
         });
     });
@@ -77,7 +78,7 @@ describe('StringParser', function() {
             var bits = Bits.from(Buffer.from('\x03g6gppqqpq'), 0, 64);
             var parseResult = struct.parse(bits, 0);
             var richString = parseResult.result.toRichString();
-            expect(richString).equals('[Container Object] \r\n\tone = \x03g6gppqq\r\n');
+            expect(richString).equals('[Container Object] ' + EOL + '\tone = \x03g6gppqq' + EOL + '');
             expect(parseResult.nextOffset).equals(64);
         });
     });
@@ -93,7 +94,7 @@ describe('Short parsers', function() {
             var bits = Bits.from(Buffer.from('\x03g6gppqqpq'), 0, 64);
             var parseResult = struct.parse(bits, 0);
             var richString = parseResult.result.toRichString();
-            expect(richString).equals('[Container Object] \r\n\tone = false\r\n');
+            expect(richString).equals('[Container Object] ' + EOL + '\tone = false' + EOL + '');
             expect(parseResult.nextOffset).equals(1);
         });
 
@@ -105,7 +106,7 @@ describe('Short parsers', function() {
             var bits = Bits.from(Buffer.from('\x00g6gppqqpq'), 0, 64);
             var parseResult = struct.parse(bits, 0);
             var richString = parseResult.result.toRichString();
-            expect(richString).equals('[Container Object] \r\n\tone = false\r\n');
+            expect(richString).equals('[Container Object] ' + EOL + '\tone = false' + EOL + '');
             expect(parseResult.nextOffset).equals(8);
         });
 
@@ -117,7 +118,7 @@ describe('Short parsers', function() {
             var bits = Bits.from(Buffer.from('\x03g6gppqqpq'), 0, 64);
             var parseResult = struct.parse(bits, 0);
             var richString = parseResult.result.toRichString();
-            expect(richString).equals('[Container Object] \r\n\tone = true\r\n');
+            expect(richString).equals('[Container Object] ' + EOL + '\tone = true' + EOL + '');
             expect(parseResult.nextOffset).equals(8);
         });
     });
