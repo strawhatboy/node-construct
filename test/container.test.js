@@ -32,33 +32,33 @@ describe('Container', function() {
     describe('item operation', function() {
         it('should be able to get item', function() {
             var c = new container.Container({ a: 1 });
-            expect(c['a']).equals(1);
-            expect(c.a).equals(1);
+            // expect(c['a']).equals(1);
+            // expect(c.a).equals(1);
+            expect(c.getItem('a')).equals(1);
         });
 
         it('should be able to set item', function() {
             var c = new container.Container();
-            c.a = 1;
-            expect(c['a']).equals(1);
-            expect(c.a).equals(1);
+            c.setItem('a', 1);
+            // expect(c['a']).equals(1);
+            expect(c.getItem('a')).equals(1);
             expect(c.items.a).equals(1);
             expect(c.keys[0]).equals('a');
 
-            c['a'] = 2;
-            expect(c['a']).equals(2);
-            expect(c.a).equals(2);
+            c.items.a = 2;
+            expect(c.getItem('a')).equals(2);
             expect(c.items.a).equals(2);
         });
 
         it('should be able to delete item', function() {
             var c = new container.Container({ a: 1, b: 2 });
-            delete c.a;
+            c.delItem('a');
             expect(c.keys.length).equals(1);
-            expect(c.a).to.be.undefined;
+            expect(c.getItem('a')).to.be.undefined;
             expect(c.items.a).to.be.undefined;
-            delete c.b;
+            c.delItem('b');
             expect(c.keys.length).equals(0);
-            expect(c.b).to.be.undefined;
+            expect(c.getItem('b')).to.be.undefined;
             expect(c.items.b).to.be.undefined;
 
             expect(c.equals(new container.Container())).to.be.true;
@@ -68,10 +68,10 @@ describe('Container', function() {
             var c = new container.Container({ a: 1, b: 2, c: 3, d: 4});
             var d = new container.Container();
             d.update(c);
-            expect(d.a).equals(1);
-            expect(d.b).equals(2);
-            expect(d.c).equals(3);
-            expect(d.d).equals(4);
+            expect(d.items.a).equals(1);
+            expect(d.items.b).equals(2);
+            expect(d.items.c).equals(3);
+            expect(d.items.d).equals(4);
 
             expect(c.equals(d)).to.be.true;
             // list?
@@ -81,10 +81,10 @@ describe('Container', function() {
             var c = new container.Container({ a: 1, b: 2, c: 3, d: 4});
             var d = new container.Container();
             d.update({ a: 1, b: 2, c: 3, d: 4});
-            expect(d.a).equals(1);
-            expect(d.b).equals(2);
-            expect(d.c).equals(3);
-            expect(d.d).equals(4);
+            expect(d.items.a).equals(1);
+            expect(d.items.b).equals(2);
+            expect(d.items.c).equals(3);
+            expect(d.items.d).equals(4);
 
             expect(c.equals(d)).to.be.true;
             // list?
@@ -185,8 +185,8 @@ describe('Container', function() {
 
         it('should be able to support the "in" operator', function() {
             var c = new container.Container({ a: 1, b: 2, c: 3, d: 4});
-            expect('a' in c).to.be.true;
-            expect('e' in c).to.be.false;
+            expect('a' in c.items).to.be.true;
+            expect('e' in c.items).to.be.false;
         });
     });
 
@@ -228,7 +228,7 @@ describe('Container', function() {
 
         it('should be able to convert itself (nested) to simple string with circular detect', function() {
             var c = new container.Container({ a: 1, b: new container.Container({ b: 2 }) });
-            c.c = c;
+            c.setItem('c', c);
             expect(c.toSimpleString()).equals('[Container Object] (a=1)(b=[Container Object] (b=2))(c=<circular detected>)');
         });
 

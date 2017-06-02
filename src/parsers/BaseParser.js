@@ -61,32 +61,31 @@ export class BaseParser {
         }
         
         logger.debug('BaseParser initialized')
-
-        return new Proxy(this, {
-            get(target, index) {
-                if (index == undefined) {
-                    return undefined
-                }
-
-                if (('_' + index) in target) {
-                    return target['_' + index]
-                }
-                return target[index]
-            }
-        })
     }
 
     _parse() {}
 
+    parse() { return this._parse.apply(this, arguments) }
+
     _build() {}
+
+    build() { return this._build.apply(this, arguments) }
 
     _pre_parse() {}
 
+    pre_parse() { return this._pre_parse.apply(this, arguments) }
+
     _pre_build() {}
+
+    pre_build() { return this._pre_build.apply(this, arguments) }
 
     _post_parse() {}
 
+    post_parse() { return this._post_parse.apply(this, arguments) }
+
     _post_build() {}
+
+    post_build() { return this._post_build.apply(this, arguments) }
 }
 
 export class FixedSizeParser extends BaseParser {

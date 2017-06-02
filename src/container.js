@@ -43,35 +43,6 @@ export class Container {
                 this.setItem(k, v)
             })
         }
-
-        return new Proxy(this, {
-            get(target, index) {
-                if (!(index in target)) {
-                    return target._items[index]
-                }
-                return target[index]
-            },
-            set(target, index, value) {
-                if (!_.startsWith(index, '_')) {
-                    target._keysOrder.push(index)
-                    target._items[index] = value
-                } else {
-                    target[index] = value
-                }
-                return true
-            },
-            deleteProperty(target, index) {
-                delete target._items[index]
-                _.remove(target._keysOrder, n => n == index)
-            },
-            has(target, index) {
-                if (!_.startsWith(index, '_')) {
-                    return _.has(target._items, index);
-                } else {
-                    return _.has(target, index);
-                }
-            }
-        })
     }
 
     get keysOrder() {
@@ -85,6 +56,10 @@ export class Container {
     setItem(key, value) {
         this._keysOrder.push(key)
         this._items[key] = value
+    }
+
+    getItem(key) {
+        return this._items[key]
     }
 
     delItem(key) {
@@ -309,23 +284,14 @@ export class ListContainer {
         } else {
             this._array = []
         }
+    }
 
-        return new Proxy(this, {
-            get(target, index) {
-                if (!(index in target)) {
-                    return target._array[index]
-                }
-                return target[index]
-            },
-            set(target, index, value) {
-                if (!_.startsWith(index, '_') && Number(index) == index) {
-                    target._array[index] = value
-                } else {
-                    target[index] = value
-                }
-                return true
-            }
-        })
+    getItem(index) {
+        return this._array[index]
+    }
+
+    setItem(index, value) {
+        this._array[index] = value
     }
 
     get length() {
@@ -516,23 +482,23 @@ export class LazyContainer {
         this._addoffset = addoffset
         this._context = context
 
-        return new Proxy(this, {
-            get(target, index) {
-                if (Number(index) == index && !(index in target)) {
-                    if (!(index in this._cached)) {
-                        let map = this._offsetmap[index]
-                        this._stream.seek(this._addoffset + map.at)
-                        this._cached[index] = map.sc._parse(this._stream, this._context, 'lazy sequence container')
-                        if (this._cached.length == this.length) {
-                            this._stream = null
-                            this._offsetmap = null
-                        }
-                    }
-                    return this._cached[index]
-                }
-                return target[index]
-            }
-        })
+        // return new Proxy(this, {
+        //     get(target, index) {
+        //         if (Number(index) == index && !(index in target)) {
+        //             if (!(index in this._cached)) {
+        //                 let map = this._offsetmap[index]
+        //                 this._stream.seek(this._addoffset + map.at)
+        //                 this._cached[index] = map.sc._parse(this._stream, this._context, 'lazy sequence container')
+        //                 if (this._cached.length == this.length) {
+        //                     this._stream = null
+        //                     this._offsetmap = null
+        //                 }
+        //             }
+        //             return this._cached[index]
+        //         }
+        //         return target[index]
+        //     }
+        // })
     }
 
     get length() {
@@ -594,21 +560,21 @@ export class LazyRangeContainer extends ListContainer {
         this._context = context
         this._cached = {}
 
-        return new Proxy(this, {
-            get(target, index) {
-                if (Number(index) == index && !(index in target)) {
-                    if (!(index in this._cached)) {
-                        this._stream.seek(this._addoffset + index * self.subsize)
-                        this._cached[index] = this._subcon._parse(this._stream, this._context, 'lazy range container')
-                        if (this._cached.length == this.length) {
-                            this._stream = null
-                        }
-                    }
-                    return this._cached[index]
-                }
-                return target[index]
-            }
-        })
+        // return new Proxy(this, {
+        //     get(target, index) {
+        //         if (Number(index) == index && !(index in target)) {
+        //             if (!(index in this._cached)) {
+        //                 this._stream.seek(this._addoffset + index * self.subsize)
+        //                 this._cached[index] = this._subcon._parse(this._stream, this._context, 'lazy range container')
+        //                 if (this._cached.length == this.length) {
+        //                     this._stream = null
+        //                 }
+        //             }
+        //             return this._cached[index]
+        //         }
+        //         return target[index]
+        //     }
+        // })
     }
 
     toString() {
@@ -637,23 +603,23 @@ export class LazySequenceContainer extends ListContainer {
         this._addoffset = addoffset
         this._context = context
 
-        return new Proxy(this, {
-            get(target, index) {
-                if (Number(index) == index && !(index in target)) {
-                    if (!(index in this._cached)) {
-                        let map = this._offsetmap[index]
-                        this._stream.seek(this._addoffset + map.at)
-                        this._cached[index] = map.sc._parse(this._stream, this._context, 'lazy sequence container')
-                        if (this._cached.length == this.length) {
-                            this._stream = null
-                            this._offsetmap = null
-                        }
-                    }
-                    return this._cached[index]
-                }
-                return target[index]
-            }
-        })
+        // return new Proxy(this, {
+        //     get(target, index) {
+        //         if (Number(index) == index && !(index in target)) {
+        //             if (!(index in this._cached)) {
+        //                 let map = this._offsetmap[index]
+        //                 this._stream.seek(this._addoffset + map.at)
+        //                 this._cached[index] = map.sc._parse(this._stream, this._context, 'lazy sequence container')
+        //                 if (this._cached.length == this.length) {
+        //                     this._stream = null
+        //                     this._offsetmap = null
+        //                 }
+        //             }
+        //             return this._cached[index]
+        //         }
+        //         return target[index]
+        //     }
+        // })
     }
 
     toString() {
