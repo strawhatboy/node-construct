@@ -27,23 +27,29 @@ export class Struct extends BaseParser {
             context = this
         }
 
-        _.forIn(this, (v, k) => {
-            if (v instanceof BaseParser) {
-                logger.debug(`start to parse from offset ${offset}`)
-                let obj = {}
-                v.pre_parse(bits, offset, context)
-                let parseResult = v.parse(bits, offset, context)
-                v.post_parse(bits, offset, parseResult, context)
-                if (_.startsWith(k, '_')) {
-                    k = k.substring(1, k.length)
+        try {
+            _.forIn(this, (v, k) => {
+                if (v instanceof BaseParser) {
+                    logger.debug(`start to parse from offset ${offset}`)
+                    let obj = {}
+                    v.pre_parse(bits, offset, context)
+                    let parseResult = v.parse(bits, offset, context)
+                    v.post_parse(bits, offset, parseResult, context)
+                    if (_.startsWith(k, '_')) {
+                        k = k.substring(1, k.length)
+                    }
+                    logger.debug(`putting key ${k} to container`)
+                    obj[k] = parseResult.result
+                    container.update(obj)
+                    offset = parseResult.nextOffset
                 }
-                logger.debug(`putting key ${k} to container`)
-                obj[k] = parseResult.result
-                container.update(obj)
-                offset = parseResult.nextOffset
-            }
-        })
+            })
 
-        return new ParseResult(container, offset)
+            return new ParseResult(container, offset)
+        } catch (e) {
+            logger.error('Got exception during parsing: ' + e)
+        }
+
+        return undefined
     }
 }

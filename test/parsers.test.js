@@ -6,6 +6,8 @@ var CStringParser = require('../lib/parsers/StringParser').CStringParser;
 var PascalStringParser = require('../lib/parsers/StringParser').PascalStringParser;
 var GreedyStringParser = require('../lib/parsers/StringParser').GreedyStringParser;
 var FlagParser = require('../lib/parsers/ShortParser').FlagParser;
+var EnumParser = require('../lib/parsers/ShortParser').EnumParser;
+var FlagsEnumParser = require('../lib/parsers/ShortParser').FlagsEnumParser
 var Bits = require('buffer-bits');
 var EOL = require('os').EOL;
 
@@ -120,6 +122,43 @@ describe('Short parsers', function() {
             var richString = parseResult.result.toRichString();
             expect(richString).equals('[Container Object] ' + EOL + '\tone = true' + EOL + '');
             expect(parseResult.nextOffset).equals(8);
+        });
+    });
+
+    describe('EnumParser', function() {
+        it('should be able to parse Enums', function() {
+            var struct = Struct.init({
+                one: EnumParser.init({ 
+                    options: {
+                        optionA: 20,
+                        optionB: 30,
+                        optionC: 40
+                    },
+                    isSigned: false // Unsigned int
+                })
+            });
+
+            var bits = Bits.from(Buffer.from('\x1E'), 0, 8);
+            var parsedResult = struct.parse(bits, 0);
+            expect(parsedResult.result.toRichString()).equals('[Container Object] ' + EOL + '\tone = optionB' + EOL);
+        });
+
+        it('should be able to parse FlagsEnum', function() {
+            var struct = Struct.init({
+                one: FlagsEnumParser.init({ 
+                    options: {
+                        optionA: 1,
+                        optionB: 2,
+                        optionC: 4,
+                        optionD: 8,
+                        optionE: 16
+                    }
+                })
+            });
+            
+            var bits = Bits.from(Buffer.from('\x1E'), 0, 8);
+            var parsedResult = struct.parse(bits, 0);
+            expect(parsedResult.result.toRichString()).equals('[Container Object] ' + EOL + '\tone = optionB,optionC,optionD,optionE' + EOL);
         });
     });
 });

@@ -1,6 +1,7 @@
 import { FixedSizeParser, ParseResult } from './BaseParser'
 import { logFactory } from '../logger'
 import _ from 'lodash'
+import { ParseException } from '../exceptions'
 
 let logger = logFactory.getLogger(require('path').basename(__filename))
 
@@ -24,13 +25,38 @@ export class FlagParser extends FixedSizeParser {
     }
 }
 
-export class EnumParser extends FixedSizeParser {
+class BaseEnumParser extends FixedSizeParser {
+
     constructor(options) {
         super(options)
         if (this._length !== 0 && this._length !== 8) {
             this._length = 8
         }
+
+        if (!_.has(this, '_isSigned')) {
+            this._isSigned = false
+        }
     }
+
+    get options() {
+        return this._options
+    }
+
+    get isSigned() {
+        return this._isSigned
+    }
+
+    _parse(bits, offset) {
+        let parsedResult = super._parse(bits, offset)
+        if (this._isSigned) {
+            return new ParseResult(parsedResult.result.readInt(), parsedResult.nextOffset)
+        } else {
+            return new ParseResult(parsedResult.result.readUInt(), parsedResult.nextOffset)
+        }
+    }
+}
+
+export class EnumParser extends BaseEnumParser {
 
     static init(options) {
         logger.debug('EnumParser initialized with options: ' + JSON.stringify(options))
@@ -39,7 +65,44 @@ export class EnumParser extends FixedSizeParser {
 
     _parse(bits, offset) {
         let parsedResult = super._parse(bits, offset)
-        let result = new ParseResult(parsedResult.result.readInt() !== 0, parsedResult.nextOffset)
-        return result
+        let value = parsedResult.result
+        if(this._options) {
+            let key = _.findKey(this._options, o => o == value)
+            if (key) {
+                return new ParseResult(key, parsedResult.nextOffset)
+            } else {
+                // parse failed
+                throw new ParseException(`Failed to parse the enum with value: ${value} from enum options: ${JSON.stringify(this._options)}`)
+            }
+        } else {
+            // parse failed
+            throw new ParseException(`Failed to parse the enum with value: ${value} because no options specified`)
+        }
+    }
+}
+
+export class FlagsEnumParser extends BaseEnumParser {
+
+    static init(options) {
+        logger.debug('FlagsEnumParser initialized with options: ' + JSON.stringify(options))
+        return new FlagsEnumParser(options)
+    }
+
+    _parse(bits, offset) {
+        let parsedResult = super._parse(bits, offset)
+        let value = parsedResult.result
+        let flags = []
+        if(this._options) {
+            _.forIn(this._options, (v, k) => {
+                if ((value & v) === v) {
+                    flags.push(k)
+                }
+            })
+
+            return new ParseResult(flags, parsedResult.nextOffset)
+        } else {
+            // parse failed
+            throw new ParseException(`Failed to parse the enum with value: ${value} because no options specified`)
+        }
     }
 }

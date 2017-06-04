@@ -8,13 +8,13 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "program": "${workspaceRoot}\\lib\\index.js"
+            "program": "${workspaceRoot}/lib/index.js"
         },
         {
             "type": "node",
             "request": "launch",
             "name": "Test",
-            "program": "${workspaceRoot}\\node_modules\\mocha\\bin\\_mocha",
+            "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
             "sourceMaps": true
         }
     ]
