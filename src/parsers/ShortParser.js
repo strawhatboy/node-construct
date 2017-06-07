@@ -18,8 +18,8 @@ export class FlagParser extends FixedSizeParser {
         return new FlagParser(options)
     }
 
-    _parse(bits, offset) {
-        let parsedResult = super._parse(bits, offset)
+    _parse(bits, offset, context) {
+        let parsedResult = super._parse(bits, offset, context)
         let result = new ParseResult(parsedResult.result.readInt() !== 0, parsedResult.nextOffset)
         return result
     }
@@ -46,8 +46,8 @@ class BaseEnumParser extends FixedSizeParser {
         return this._isSigned
     }
 
-    _parse(bits, offset) {
-        let parsedResult = super._parse(bits, offset)
+    _parse(bits, offset, context) {
+        let parsedResult = super._parse(bits, offset, context)
         if (this._isSigned) {
             return new ParseResult(parsedResult.result.readInt(), parsedResult.nextOffset)
         } else {
@@ -63,8 +63,8 @@ export class EnumParser extends BaseEnumParser {
         return new EnumParser(options)
     }
 
-    _parse(bits, offset) {
-        let parsedResult = super._parse(bits, offset)
+    _parse(bits, offset, context) {
+        let parsedResult = super._parse(bits, offset, context)
         let value = parsedResult.result
         if(this._options) {
             let key = _.findKey(this._options, o => o == value)
@@ -88,8 +88,8 @@ export class FlagsEnumParser extends BaseEnumParser {
         return new FlagsEnumParser(options)
     }
 
-    _parse(bits, offset) {
-        let parsedResult = super._parse(bits, offset)
+    _parse(bits, offset, context) {
+        let parsedResult = super._parse(bits, offset, context)
         let value = parsedResult.result
         let flags = []
         if(this._options) {

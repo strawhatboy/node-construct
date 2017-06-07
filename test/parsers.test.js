@@ -7,7 +7,8 @@ var PascalStringParser = require('../lib/parsers/StringParser').PascalStringPars
 var GreedyStringParser = require('../lib/parsers/StringParser').GreedyStringParser;
 var FlagParser = require('../lib/parsers/ShortParser').FlagParser;
 var EnumParser = require('../lib/parsers/ShortParser').EnumParser;
-var FlagsEnumParser = require('../lib/parsers/ShortParser').FlagsEnumParser
+var FlagsEnumParser = require('../lib/parsers/ShortParser').FlagsEnumParser;
+var IpAddressParser = require('../lib/parsers/OtherParser').IpAddressParser;
 var Bits = require('buffer-bits');
 var EOL = require('os').EOL;
 
@@ -159,6 +160,18 @@ describe('Short parsers', function() {
             var bits = Bits.from(Buffer.from('\x1E'), 0, 8);
             var parsedResult = struct.parse(bits, 0);
             expect(parsedResult.result.toRichString()).equals('[Container Object] ' + EOL + '\tone = optionB,optionC,optionD,optionE' + EOL);
+        });
+    });
+
+    describe('IpAddressParser', function() {
+        it('should be able to parse IpAddress', function() {
+            var struct = Struct.init({
+                one: IpAddressParser.init()
+            });
+
+            var bits = Bits.from(Buffer.from('\x1E\x99\x23\x93'), 0, 32);
+            var parsedResult = struct.parse(bits, 0);
+            expect(parsedResult.result.toRichString()).equals('[Container Object] ' + EOL + '\tone = 30.194.153.35' + EOL);
         });
     });
 });

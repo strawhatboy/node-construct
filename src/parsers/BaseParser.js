@@ -100,7 +100,7 @@ export class FixedSizeParser extends BaseParser {
         return this._length || 0
     }
 
-    _parse(bits, offset) {
+    _parse(bits, offset, context) {
         if (offset + this.length > bits.length) {
             // out of range
             throw new OutOfRangeException(this.constructor.name)
@@ -123,6 +123,10 @@ export class FixedSizeByteParser extends FixedSizeParser {
         logger.debug('FixedSizeByteParser initialized with options: ' + JSON.stringify(options))
         return new FixedSizeByteParser(options)
     }
+
+    get byteLength() {
+        return this._byteLength
+    }
 }
 
 export class RangedSizeParser extends BaseParser {
@@ -142,7 +146,7 @@ export class RangedSizeParser extends BaseParser {
         return this._range
     }
 
-    _parse(bits, offset) {
+    _parse(bits, offset, context) {
         if (this.range.lowerBound != undefined) {
             // check it like length
             if (offset + this.range.lowerBound >= bits.length) {

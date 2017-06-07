@@ -23,8 +23,8 @@ export default class StringParser extends FixedSizeByteParser {
         return new StringParser(options)
     }
 
-    _parse(bits, offset) {
-        let parseResult = super._parse(bits, offset)
+    _parse(bits, offset, context) {
+        let parseResult = super._parse(bits, offset, context)
         logger.debug('parsing inside StringParser with result: ' + parseResult.result.toBinaryString())
         let resultString = parseResult.result.readString(this._encoding)
         let result = new ParseResult(resultString, parseResult.nextOffset)
@@ -54,8 +54,8 @@ export class CStringParser extends RangedSizeByteParser {
         return new CStringParser(options)
     }
 
-    _parse(bits, offset) {
-        let parseResult = super._parse(bits, offset)
+    _parse(bits, offset, context) {
+        let parseResult = super._parse(bits, offset, context)
         logger.debug('parsing inside CStringParser with result: ' + parseResult.result.toBinaryString())
         let resultString = parseResult.result.readString(this._encoding)
         let result = new ParseResult(resultString, parseResult.nextOffset)
@@ -84,7 +84,7 @@ export class PascalStringParser extends StringParser {
         return new PascalStringParser(options)
     }
 
-    _parse(bits, offset) {
+    _parse(bits, offset, context) {
         // try to read 1st byte to determine the size (byte)
         if (offset + 8 > bits.length) {
             throw new OutOfRangeException(this.constructor.name)

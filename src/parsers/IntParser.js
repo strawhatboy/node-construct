@@ -20,8 +20,8 @@ export default class IntParser extends FixedSizeParser {
         return new IntParser(options)
     }
 
-    _parse(bits, offset) {
-        let parseResult = super._parse(bits, offset)
+    _parse(bits, offset, context) {
+        let parseResult = super._parse(bits, offset, context)
         logger.debug('parsing inside IntParser with result: ' + parseResult.result.toBinaryString())
         let resultInt = 0
         if (this._isSigned) {
