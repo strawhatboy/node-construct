@@ -219,23 +219,59 @@ export class NestedParser extends BaseParser {
     }
 
     _build() {
-        this._innerParser.build()
+        return this._innerParser.build.apply(this._innerParser, arguments)
     }
 
-    _pre_parse(bits, offset, context) {
-        this._innerParser.pre_parse(bits, offset, context)
+    _pre_parse() {
+        return this._innerParser.pre_parse.apply(this._innerParser, arguments)
     }
 
-    _post_parse(bits, offset, context) {
-        this._innerParser.post_parse(bits, offset, context)
+    _post_parse() {
+        return this._innerParser.post_parse.apply(this._innerParser, arguments)
     }
 
-    _pre_build(bits, offset, context) {
-        this._innerParser.pre_build(bits, offset, context)
+    _pre_build() {
+        return this._innerParser.pre_build.apply(this._innerParser, arguments)
     }
 
-    _post_build(bits, offset, context) {
-        this._innerParser.post_build(bits, offset, context)
+    _post_build() {
+        return this._innerParser.post_build.apply(this._innerParser, arguments)
+    }
+}
+
+export class RepeatParser extends BaseParser {
+    constructor(options) {
+        super(options)
+        this._times = this._times || 1
+    }
+
+    static init(options) {
+        logger.debug('RepeatParser initialized with options: ' + JSON.stringify(options))
+        return new RepeatParser(options)
+    }
+
+    get repeatedParser() {
+        return this._repeatedParser
+    }
+    
+    get times() {
+        return this._times
+    }
+
+    _parse(bits, offset, context) {
+        let result = []
+        let nextOffset = offset
+        let times = this._times
+        if (typeof this._times === 'function') {
+            times = this._times.call(this, context)
+        }
+        for (let i = 0; i < times; i++) {
+            let tmpResult = this._repeatedParser._parse.call(this._repeatedParser, bits, nextOffset, context)
+            result.push(tmpResult.result)
+            nextOffset = tmpResult.nextOffset
+        }
+
+        return new ParseResult(result, nextOffset)
     }
 }
 

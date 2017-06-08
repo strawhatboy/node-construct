@@ -1,5 +1,6 @@
 import { BaseParser, ParseResult } from './parsers/BaseParser'
 import { Container } from './container'
+import { Context } from './context'
 import _ from 'lodash'
 import { logFactory } from './logger'
 
@@ -21,10 +22,11 @@ export class Struct extends BaseParser {
 
     _parse(bits, offset, context) {
         let container = new Container()
-        if (!this._hasOwnContext) {
-            context = context || this
+        if (context) {
+            context.push(container)
         } else {
-            context = this
+            context = new Context()
+            context.push(container)
         }
 
         try {
@@ -45,6 +47,7 @@ export class Struct extends BaseParser {
                 }
             })
 
+            context.pop()
             return new ParseResult(container, offset)
         } catch (e) {
             logger.error('Got exception during parsing: ' + e)

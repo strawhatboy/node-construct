@@ -6,7 +6,7 @@ import _ from 'lodash'
 
 let logger = logFactory.getLogger(require('path').basename(__filename))
 
-export default class StringParser extends FixedSizeByteParser {
+export class StringParser extends FixedSizeByteParser {
 
 
     /**

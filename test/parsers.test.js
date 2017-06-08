@@ -1,14 +1,15 @@
 var expect = require('chai').expect;
 var Struct = require('../lib/struct').Struct;
-var IntParser = require('../lib/parsers/IntParser').default;
-var StringParser = require('../lib/parsers/StringParser').default;
-var CStringParser = require('../lib/parsers/StringParser').CStringParser;
-var PascalStringParser = require('../lib/parsers/StringParser').PascalStringParser;
-var GreedyStringParser = require('../lib/parsers/StringParser').GreedyStringParser;
-var FlagParser = require('../lib/parsers/ShortParser').FlagParser;
-var EnumParser = require('../lib/parsers/ShortParser').EnumParser;
-var FlagsEnumParser = require('../lib/parsers/ShortParser').FlagsEnumParser;
-var IpAddressParser = require('../lib/parsers/OtherParser').IpAddressParser;
+var IntParser = require('../lib/parsers').IntParser;
+var StringParser = require('../lib/parsers').StringParser;
+var CStringParser = require('../lib/parsers').CStringParser;
+var PascalStringParser = require('../lib/parsers').PascalStringParser;
+var GreedyStringParser = require('../lib/parsers').GreedyStringParser;
+var FlagParser = require('../lib/parsers').FlagParser;
+var EnumParser = require('../lib/parsers').EnumParser;
+var ENUM_DEFAULT = require('../lib/parsers').ENUM_DEFAULT;
+var FlagsEnumParser = require('../lib/parsers').FlagsEnumParser;
+var IpAddressParser = require('../lib/parsers').IpAddressParser;
 var Bits = require('buffer-bits');
 var EOL = require('os').EOL;
 
@@ -143,6 +144,25 @@ describe('Short parsers', function() {
             var parsedResult = struct.parse(bits, 0);
             expect(parsedResult.result.toRichString()).equals('[Container Object] ' + EOL + '\tone = optionB' + EOL);
         });
+
+        it('should be able to parse Enums with default value', function() {
+            var struct = Struct.init({
+                one: EnumParser.init({ 
+                    options: {
+                        optionA: 20,
+                        optionB: 30,
+                        optionC: 40,
+                        optionDefault: ENUM_DEFAULT
+                    },
+                    isSigned: false // Unsigned int
+                })
+            });
+
+            var bits = Bits.from(Buffer.from('\x99'), 0, 8);
+            var parsedResult = struct.parse(bits, 0);
+            expect(parsedResult.result.toRichString()).equals('[Container Object] ' + EOL + '\tone = optionDefault' + EOL);
+        });
+
 
         it('should be able to parse FlagsEnum', function() {
             var struct = Struct.init({

@@ -28,7 +28,7 @@
   },
   "homepage": "https://github.com/strawhatboy/node-construct#readme",
   "dependencies": {
-    "buffer-bits": "^0.0.9",
+    "buffer-bits": "^0.0.11",
     "lodash": "^4.17.4",
     "log4js": "^1.1.1",
     "is-circular": "^1.0.1"

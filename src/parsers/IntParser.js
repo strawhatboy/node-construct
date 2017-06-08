@@ -3,7 +3,7 @@ import { logFactory } from '../logger'
 
 let logger = logFactory.getLogger(require('path').basename(__filename))
 
-export default class IntParser extends FixedSizeParser {
+export class IntParser extends FixedSizeParser {
 
 
     /**
