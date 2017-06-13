@@ -33,6 +33,14 @@ export class IntParser extends FixedSizeParser {
         logger.debug('get result: ' + JSON.stringify(result))
         return result
     }
+
+    get isLE() {
+        return this._isLE
+    }
+
+    get isSigned() {
+        return this._isSigned
+    }
 }
 
 export class Int8Parser extends IntParser {

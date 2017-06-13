@@ -26,6 +26,9 @@ export const Types = {
     }
 }
 
+
+export const OPTION_DEFAULT = 'OptionDefault'
+
 export class ParseResult {
     constructor(result, nextOffset) {
         this.result = result
@@ -105,9 +108,16 @@ export class FixedSizeParser extends BaseParser {
             // out of range
             throw new OutOfRangeException(this.constructor.name)
         }
+        let length = this._length
 
-        this._bits = Bits.from(bits, offset, this.length)
-        return new ParseResult(this._bits, offset + this.length)
+        if (typeof this._length === 'string') {
+            length = eval(this._length)
+        } else if (typeof this._length === 'function') {
+            length = this._length.call(this, context)
+        }
+
+        this._bits = Bits.from(bits, offset, length)
+        return new ParseResult(this._bits, offset + length)
     }
 }
 
@@ -115,13 +125,26 @@ export class FixedSizeByteParser extends FixedSizeParser {
 
     constructor(options) {
         super(options)
-        this._byteLength = this._length
-        this._length <<= 3
+
+        if (_.isNumber(this._length)) {
+            this._byteLength = this._length
+            this._length <<= 3
+        }
     }
 
     static init(options) {
         logger.debug('FixedSizeByteParser initialized with options: ' + JSON.stringify(options))
         return new FixedSizeByteParser(options)
+    }
+
+    _parse(bits, offset, context) {
+        if (typeof this._length === 'string') {
+            length = eval(this._length) << 3
+        } else if (typeof this._length === 'function') {
+            length = this._length.call(this, context) << 3
+        }
+
+        return super._parse(bits, offset, context)
     }
 
     get byteLength() {
@@ -146,6 +169,10 @@ export class RangedSizeParser extends BaseParser {
         return this._range
     }
 
+    get isBoundIncluded() {
+        return this._isBoundIncluded
+    }
+
     _parse(bits, offset, context) {
         if (this.range.lowerBound != undefined) {
             // check it like length
@@ -159,14 +186,22 @@ export class RangedSizeParser extends BaseParser {
         this._bits = Bits.from(bits, offset, 0)
         while (currentOffset < bits.length) {
             let parsedBits = Bits.from(bits, currentOffset, this._steps)
-            this._bits = this._bits.concat(parsedBits)
             parsedLength += this._steps
             currentOffset += this._steps
 
             if (this._stop(bits, offset, currentOffset, parsedLength, parsedBits)) {
                 // stop the parsing
+                // won't include the bound by default (for CString there's no \0 in javascript, but for building, there should be a '\0' appended)
+                if (this._isBoundIncluded) {
+                    this._bits = this._bits.concat(parsedBits)
+                } else {
+                    parsedLength -= this._steps
+                    currentOffset -= this._steps
+                }
                 break
             }
+
+            this._bits = this._bits.concat(parsedBits)
         }
 
         return new ParseResult(this._bits, currentOffset)
@@ -272,6 +307,53 @@ export class RepeatParser extends BaseParser {
         }
 
         return new ParseResult(result, nextOffset)
+    }
+}
+
+export class RepeatUtilParser extends BaseParser {
+    constructor(options) {
+        super(options)
+    }
+
+    get repeatedParser() {
+        return this._repeatedParser
+    }
+
+    get expression() {
+        return this._expression
+    }
+
+    static init(options) {
+        logger.debug('RepeatUtilParser initialized with options: ' + JSON.stringify(options))
+        if (typeof options === 'string' || typeof options === 'function') {
+            return new RepeatUtilParser({ expression: options })
+        }
+        return new RepeatParser(options)
+    }
+
+    _parse(bits, offset, context) {
+        let result = []
+        let nextOffset = offset
+
+        let index = 0
+        while (this._stop(context, index) !== true) {
+            let tmpResult = this._repeatedParser._parse.call(this._repeatedParser, bits, nextOffset, context)
+            result.push(tmpResult.result)
+            nextOffset = tmpResult.nextOffset
+            index++
+        }
+
+        return new ParseResult(result, nextOffset)
+    }
+
+    _stop(context, index) {
+        if (typeof this._expression === 'string') {
+            return eval(this._expression)
+        } else if (typeof this._expression === 'function') {
+            return this._expression.call(this, context, index)
+        }
+
+        return false
     }
 }
 

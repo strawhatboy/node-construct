@@ -7,7 +7,7 @@ var PascalStringParser = require('../lib/parsers').PascalStringParser;
 var GreedyStringParser = require('../lib/parsers').GreedyStringParser;
 var FlagParser = require('../lib/parsers').FlagParser;
 var EnumParser = require('../lib/parsers').EnumParser;
-var ENUM_DEFAULT = require('../lib/parsers').ENUM_DEFAULT;
+var OPTION_DEFAULT = require('../lib/parsers').OPTION_DEFAULT;
 var FlagsEnumParser = require('../lib/parsers').FlagsEnumParser;
 var IpAddressParser = require('../lib/parsers').IpAddressParser;
 var Bits = require('buffer-bits');
@@ -53,9 +53,9 @@ describe('StringParser', function() {
             var bits = Bits.from(Buffer.from('gg\x00666'), 0, 36);
             var parseResult = struct.parse(bits, 0);
             var richString = parseResult.result.toRichString();
-            expect(richString).equals('[Container Object] ' + EOL + '\tone = gg\x00' + EOL + '');
+            expect(richString).equals('[Container Object] ' + EOL + '\tone = gg' + EOL + '');
             // only 2 bytes and the stop char parsed
-            expect(parseResult.nextOffset).equals(24);
+            expect(parseResult.nextOffset).equals(16);
         });
     });
 
@@ -152,7 +152,7 @@ describe('Short parsers', function() {
                         optionA: 20,
                         optionB: 30,
                         optionC: 40,
-                        optionDefault: ENUM_DEFAULT
+                        optionDefault: OPTION_DEFAULT
                     },
                     isSigned: false // Unsigned int
                 })

@@ -1,4 +1,4 @@
-import { FixedSizeParser, ParseResult } from './BaseParser'
+import { FixedSizeParser, ParseResult, OPTION_DEFAULT } from './BaseParser'
 import { logFactory } from '../logger'
 import _ from 'lodash'
 import { ParseException } from '../exceptions'
@@ -56,7 +56,6 @@ class BaseEnumParser extends FixedSizeParser {
     }
 }
 
-export const ENUM_DEFAULT = 'EnumDefault'
 export class EnumParser extends BaseEnumParser {
 
     static init(options) {
@@ -68,7 +67,7 @@ export class EnumParser extends BaseEnumParser {
         let parsedResult = super._parse(bits, offset, context)
         let value = parsedResult.result
         if(this._options) {
-            let key = _.findKey(this._options, o => o == value) || _.findKey(this._options, o => o === ENUM_DEFAULT)
+            let key = _.findKey(this._options, o => o == value) || _.findKey(this._options, o => o === OPTION_DEFAULT)
             if (key) {
                 return new ParseResult(key, parsedResult.nextOffset)
             } else {
