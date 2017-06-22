@@ -1,5 +1,5 @@
 import { BaseParser, ParseResult } from './parsers/BaseParser'
-import { Container } from './container'
+import { Container } from './container_v2'
 import { Context } from './context'
 import _ from 'lodash'
 import { logFactory } from './logger'
@@ -42,7 +42,7 @@ export class Struct extends BaseParser {
                     }
                     logger.debug(`putting key ${k} to container`)
                     obj[k] = parseResult.result
-                    container.update(obj)
+                    _.assign(container, obj)
                     offset = parseResult.nextOffset
                 }
             })
@@ -51,8 +51,7 @@ export class Struct extends BaseParser {
             return new ParseResult(container, offset)
         } catch (e) {
             logger.error('Got exception during parsing: ' + e)
+            throw e
         }
-
-        return undefined
     }
 }

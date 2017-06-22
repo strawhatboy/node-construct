@@ -1,6 +1,7 @@
 import { BaseParser, ParseResult, OPTION_DEFAULT } from './BaseParser'
 import { ParseException } from '../exceptions'
 import { logFactory } from '../logger'
+import Bits from 'buffer-bits'
 
 let logger = logFactory.getLogger(require('path').basename(__filename))
 
@@ -113,5 +114,29 @@ export class IfThenElse extends BaseParser {
         } else {
             throw new ParseException(`Failed to parse the IfThenElse because no inner parser for it`)
         }
+    }
+}
+
+export class Const extends BaseParser {
+
+    static init(options) {
+        logger.debug('Const initialized with options: ' + JSON.stringify(options))
+        return new Const(options)
+    }
+
+    // binary string
+    get value() {
+        return this._value
+    }
+
+    _parse(bits, offset, context) {
+        let parsedBits = Bits.from(bits, offset, this._value.length * 8)
+        let anotherBits = Bits.from(Buffer.from(this._value))
+        if (parsedBits.equals(anotherBits)) {
+            // pass the check
+        } else {
+            throw new ParseException("Failed to parse the Const")
+        }
+        return new ParseResult(parsedBits, offset + this._value.length * 8)
     }
 }

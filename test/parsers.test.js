@@ -10,6 +10,12 @@ var EnumParser = require('../lib/parsers').EnumParser;
 var OPTION_DEFAULT = require('../lib/parsers').OPTION_DEFAULT;
 var FlagsEnumParser = require('../lib/parsers').FlagsEnumParser;
 var IpAddressParser = require('../lib/parsers').IpAddressParser;
+var Switch = require('../lib/parsers').Switch;
+var IfThenElse = require('../lib/parsers').IfThenElse;
+var Const = require('../lib/parsers').Const;
+var EmptyParser = require('../lib/parsers').EmptyParser;
+
+var ParseException = require('../lib/exceptions').ParseException;
 var Bits = require('buffer-bits');
 var EOL = require('os').EOL;
 
@@ -194,4 +200,90 @@ describe('Short parsers', function() {
             expect(parsedResult.result.toRichString()).equals('[Container Object] ' + EOL + '\tone = 30.194.153.35' + EOL);
         });
     });
+
+    describe('SwitchParser', function() {
+        var struct = Struct.init({
+            len: IntParser.init({ length: 8 }),
+            value: Switch.init({
+                expression: ctx => ctx.current.len,
+                options: {
+                    1: IntParser.init({ length: 8 }),
+                    2: IntParser.init({ length: 16 }),
+                    3: IntParser.init({ length: 32 }),
+                    OPTION_DEFAULT: EmptyParser.init()
+                }
+            })
+        });
+
+        it('should be able to switch between different parsers according to context - A', function() {
+            var bits = Bits.from(Buffer.from('\x01\x02\x03\x04\x05\x06\x07'));
+            var result = struct.parse(bits, 0)
+            expect(result.result.toRichString()).equals('[Container Object] ' + EOL + '\tlen = 1' + EOL + '\tvalue = 2' + EOL);
+        });
+
+        it('should be able to switch between different parsers according to context - B', function() {
+            var bits = Bits.from(Buffer.from('\x02\x02\x03\x04\x05\x06\x07'));
+            var result = struct.parse(bits, 0)
+            expect(result.result.toRichString()).equals('[Container Object] ' + EOL + '\tlen = 2' + EOL + '\tvalue = 515' + EOL);
+        });
+            
+        it('should be able to switch between different parsers according to context - C', function() {
+            var bits = Bits.from(Buffer.from('\x03\x02\x03\x04\x05\x06\x07'));
+            var result = struct.parse(bits, 0)
+            expect(result.result.toRichString()).equals('[Container Object] ' + EOL + '\tlen = 3' + EOL + '\tvalue = 33752069' + EOL);
+        });
+            
+        it('should be able to switch between different parsers according to context - D', function() {
+            var bits = Bits.from(Buffer.from('\x04\x02\x03\x04\x05\x06\x07'));
+            var result = struct.parse(bits, 0)
+            expect(result.result.toRichString()).equals('[Container Object] ' + EOL + '\tlen = 4' + EOL + '\tvalue = undefined' + EOL);
+        });
+    })
+
+    describe('IfElseThenParser', function() {
+        var struct = Struct.init({
+            len: IntParser.init({ length: 8 }),
+            value: IfThenElse.init({
+                expression: ctx => ctx.current.len === 1,
+                true: IntParser.init({ length: 8 }),
+                false: IntParser.init({ length: 16 })
+            })
+        });
+
+        it('should be able to go to different branch according to the expression - true', function() {
+            var bits = Bits.from(Buffer.from('\x01\x02\x03\x04\x05\x06\x07'));
+            var result = struct.parse(bits, 0)
+            expect(result.result.toRichString()).equals('[Container Object] ' + EOL + '\tlen = 1' + EOL + '\tvalue = 2' + EOL);
+        });
+
+        it('should be able to go to different branch according to the expression - false', function() {
+            var bits = Bits.from(Buffer.from('\x03\x02\x03\x04\x05\x06\x07'));
+            var result = struct.parse(bits, 0)
+            expect(result.result.toRichString()).equals('[Container Object] ' + EOL + '\tlen = 3' + EOL + '\tvalue = 515' + EOL);
+        });
+
+        it('should be able to go to different branch according to the expression - more false', function() {
+            var bits = Bits.from(Buffer.from('\x09\x02\x03\x04\x05\x06\x07'));
+            var result = struct.parse(bits, 0)
+            expect(result.result.toRichString()).equals('[Container Object] ' + EOL + '\tlen = 9' + EOL + '\tvalue = 515' + EOL);
+        });
+    })
+
+    describe('ConstParser', function() {
+        var struct = Struct.init({
+            len: Const.init({ value: '\x09\x33' })
+        });
+
+        it('should be able to parse const values', function() {
+            var bits = Bits.from(Buffer.from('\x09\x33\x03\x04\x05\x06\x07'));
+            var result = struct.parse(bits, 0)
+            expect(result.result.toRichString()).equals('[Container Object] ' + EOL + '\tlen = 0b0000100100110011 (total 16)' + EOL);
+        });
+
+        it('should throw if the const value does not match', function() {
+            var bits = Bits.from(Buffer.from('\x09\x32\x03\x04\x05\x06\x07'));
+            var func = struct.parse.bind(struct, bits, 0)
+            expect(func).to.throw(Error)
+        });
+    })
 });

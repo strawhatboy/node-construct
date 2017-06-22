@@ -1,6 +1,5 @@
 import _ from 'lodash'
 import Bits from 'buffer-bits'
-import { Container } from '../container'
 import { OutOfRangeException } from '../exceptions'
 import { logFactory } from '../logger'
 
@@ -27,7 +26,7 @@ export const Types = {
 }
 
 
-export const OPTION_DEFAULT = 'OptionDefault'
+export const OPTION_DEFAULT = 'OPTION_DEFAULT'
 
 export class ParseResult {
     constructor(result, nextOffset) {
@@ -89,6 +88,19 @@ export class BaseParser {
     _post_build() {}
 
     post_build() { return this._post_build.apply(this, arguments) }
+}
+
+export class EmptyParser extends BaseParser {
+    // do nothing
+
+    static init(options) {
+        logger.debug('EmptyParser initialized with options: ' + JSON.stringify(options))
+        return new EmptyParser(options)
+    }
+
+    _parse(bits, offset, context) {
+        return new ParseResult(undefined, offset)
+    }
 }
 
 export class FixedSizeParser extends BaseParser {
@@ -336,7 +348,7 @@ export class RepeatUtilParser extends BaseParser {
         let nextOffset = offset
 
         let index = 0
-        while (this._stop(context, index) !== true) {
+        while (this._stop(context, index, bits, nextOffset) !== true) {
             let tmpResult = this._repeatedParser._parse.call(this._repeatedParser, bits, nextOffset, context)
             result.push(tmpResult.result)
             nextOffset = tmpResult.nextOffset
@@ -346,14 +358,31 @@ export class RepeatUtilParser extends BaseParser {
         return new ParseResult(result, nextOffset)
     }
 
-    _stop(context, index) {
+    _stop(context, index, bits, nextOffset) {
+        // have to stop if it's already the end
+        if (nextOffset >= bits.length) {
+            return true
+        }
+
         if (typeof this._expression === 'string') {
             return eval(this._expression)
         } else if (typeof this._expression === 'function') {
-            return this._expression.call(this, context, index)
+            return this._expression.call(this, context, index, bits, nextOffset)
         }
 
         return false
+    }
+}
+
+export class GreedyRangeParser extends RepeatUtilParser {
+    constructor(options) {
+        super(options)
+    }
+
+    static init(options) {
+        logger.debug('GreedyRangeParser initialized with options: ' + JSON.stringify(options))
+        options.expression = () => false
+        return new GreedyRangeParser(options)
     }
 }
 

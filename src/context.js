@@ -23,6 +23,10 @@ export class Context {
         }
     }
 
+    get parent() {
+        return this.getParent()
+    }
+
     getParent(depth = 1) {
         if (this._array.length - depth > 0) {
             return this._array[this._array.length - 1 - depth]
