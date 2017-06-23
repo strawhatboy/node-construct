@@ -32,7 +32,7 @@ export class ParseResult {
     constructor(result, nextOffset) {
         this.result = result
         this.nextOffset = nextOffset
-        logger.debug(`ParseResult initialized, result: ${JSON.stringify(result)}, nextOffset: ${JSON.stringify(nextOffset)}`)
+        logger.debug(`ParseResult initialized, result: ${_.truncate(JSON.stringify(result), {length: 500})}, nextOffset: ${JSON.stringify(nextOffset)}`)
     }
 
     update(anotherResult) {
