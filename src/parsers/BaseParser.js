@@ -128,6 +128,14 @@ export class FixedSizeParser extends BaseParser {
             length = this._length.call(this, context)
         }
 
+        if (this._expression) {
+            if (typeof this._expression === 'string') {
+                length = eval(this._expression)
+            } else if (typeof this._expression === 'function') {
+                length = this._expression.call(this, context)
+            }
+        }
+
         this._bits = Bits.from(bits, offset, length)
         return new ParseResult(this._bits, offset + length)
     }
@@ -151,9 +159,9 @@ export class FixedSizeByteParser extends FixedSizeParser {
 
     _parse(bits, offset, context) {
         if (typeof this._length === 'string') {
-            length = eval(this._length) << 3
+            this._expression = () => eval(this._length) << 3
         } else if (typeof this._length === 'function') {
-            length = this._length.call(this, context) << 3
+            this._expression = ctx => (this._length.call(this, ctx) << 3)
         }
 
         return super._parse(bits, offset, context)

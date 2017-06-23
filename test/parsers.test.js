@@ -185,7 +185,7 @@ describe('Short parsers', function() {
             
             var bits = Bits.from(Buffer.from('\x1E'), 0, 8);
             var parsedResult = struct.parse(bits, 0);
-            expect(parsedResult.result.toRichString()).equals('[Container Object] ' + EOL + '\tone = optionB,optionC,optionD,optionE' + EOL);
+            expect(parsedResult.result.toRichString()).equals('[Container Object] ' + EOL + '\tone = [optionB, optionC, optionD, optionE]' + EOL);
         });
     });
 

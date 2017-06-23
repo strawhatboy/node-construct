@@ -51,7 +51,6 @@ export class Int8Parser extends IntParser {
     }
 
     static init(options) {
-        options.length = 8
         logger.debug('Int8Parser initialized with options: ' + JSON.stringify(options))
         return new Int8Parser(options)
     }
@@ -65,7 +64,6 @@ export class Int16Parser extends IntParser {
     }
 
     static init(options) {
-        options.length = 16
         logger.debug('Int16Parser initialized with options: ' + JSON.stringify(options))
         return new Int16Parser(options)
     }
@@ -79,7 +77,6 @@ export class Int32Parser extends IntParser {
     }
 
     static init(options) {
-        options.length = 32
         logger.debug('Int32Parser initialized with options: ' + JSON.stringify(options))
         return new Int32Parser(options)
     }

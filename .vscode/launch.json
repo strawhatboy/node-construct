@@ -15,7 +15,10 @@
             "request": "launch",
             "name": "Test",
             "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
-            "sourceMaps": true
+            "sourceMaps": true,
+            "args": [
+                "${workspaceRoot}/test/**/*.js"
+            ]
         }
     ]
 }

@@ -1,5 +1,6 @@
 import { EmptyParser, Int32Parser, EnumParser, OPTION_DEFAULT, Computed, Switch, IfThenElse, Const, GreedyRangeParser, RepeatParser, Int8Parser, Int16Parser, FixedSizeByteParser, StringParser, CStringParser } from '../parsers'
 import { Struct } from '../struct'
+import _ from 'lodash'
 
 let coord = Struct.init({
     x: Int32Parser.init(),
@@ -16,7 +17,7 @@ let plte_info = Struct.init({
     })
 })
 
-let idat_info = FixedSizeByteParser.init({ length: ctx => ctx.current.length })
+let idat_info = FixedSizeByteParser.init({ length: ctx => ctx.current.len })
 
 let trns_info = Switch.init({ 
     expression: ctx => ctx.parent.image_header.color_type, 
@@ -42,7 +43,7 @@ let gama_info = Struct.init({
 let iccp_info = Struct.init({
     name: CStringParser.init(),
     compression_method,
-    compressed_profile: FixedSizeByteParser({ length: ctx => ctx.parent.len - (ctx.current.name.length + 2) })
+    compressed_profile: FixedSizeByteParser.init({ length: ctx => ctx.parent.len - (ctx.current.name.length + 2) })
 })
 
 let sbit_info = Switch.init({
@@ -68,13 +69,13 @@ let rendering_indent = EnumParser.init({
 
 let text_info = Struct.init({
     keyword: CStringParser.init(),
-    text: FixedSizeByteParser({ length: ctx => ctx.parent.len - (ctx.current.keyword.length + 1) })
+    text: FixedSizeByteParser.init({ length: ctx => ctx.parent.len - (ctx.current.keyword.length + 1) })
 })
 
 let ztxt_info = Struct.init({
     keyword: CStringParser.init(),
     compression_method,
-    compressed_text: FixedSizeByteParser({ length: ctx => ctx.parent.len - (ctx.current.name.length + 2) })
+    compressed_text: FixedSizeByteParser.init({ length: ctx => ctx.parent.len - (ctx.current.name.length + 2) })
 })
 
 let itxt_info = Struct.init({
@@ -83,7 +84,7 @@ let itxt_info = Struct.init({
     compression_method,
     language_tag: CStringParser.init(),
     translated_keyword: CStringParser.init(),
-    text: FixedSizeByteParser({ length: ctx => ctx.parent.len - (ctx.current.keyword.length + ctx.current.language_tag.length + ctx.current.translated_keyword.length + 5) })
+    text: FixedSizeByteParser.init({ length: ctx => ctx.parent.len - (ctx.current.keyword.length + ctx.current.language_tag.length + ctx.current.translated_keyword.length + 5) })
 })
 
 let bkgd_info = Switch.init({
@@ -159,11 +160,11 @@ let default_chunk_info = FixedSizeByteParser.init({ length: ctx => ctx.current.l
 let chunk = Struct.init({
     len: Int32Parser.init(),
     type: StringParser.init({ length: 4 }),
-    data: Switch({
+    data: Switch.init({
         expression: ctx => ctx.current.type,
         options: {
             "PLTE" : plte_info,
-            "IEND" : EmptyParser,
+            "IEND" : EmptyParser.init(),
             "IDAT" : idat_info,
             "tRNS" : trns_info,
             "cHRM" : chrm_info,
@@ -207,8 +208,8 @@ let image_header_chunk = Struct.init({
     crc: Int32Parser.init()
 })
 
-let png_file = Struct.init({
-    signature: Const.init({ value: '\x89PNG\r\n\x1a\n' }),
-    image_header_chunk,
+export let png_file = Struct.init({
+    signature: Const.init({ value: [0x89].concat(_.map('PNG\r\n\x1a\n', v => v.charCodeAt(0))) }),
+    image_header: image_header_chunk,
     chunks: GreedyRangeParser.init({ repeatedParser: chunk })
 })

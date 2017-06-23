@@ -4,7 +4,7 @@
   "description": "A Javascript Implementation for construct (https://github.com/construct/construct)",
   "main": "lib/index.js",
   "scripts": {
-    "test": "./node_modules/.bin/_mocha"
+    "test": "./node_modules/.bin/_mocha ./test/**/*.js"
   },
   "repository": {
     "type": "git",

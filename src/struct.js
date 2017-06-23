@@ -21,6 +21,7 @@ export class Struct extends BaseParser {
     }
 
     _parse(bits, offset, context) {
+        offset = offset || 0
         let container = new Container()
         if (context) {
             context.push(container)
@@ -32,7 +33,7 @@ export class Struct extends BaseParser {
         try {
             _.forIn(this, (v, k) => {
                 if (v instanceof BaseParser) {
-                    logger.debug(`start to parse from offset ${offset}`)
+                    logger.debug(`start to parse from offset ${offset}, ${bits.length - offset} left...`)
                     let obj = {}
                     v.pre_parse(bits, offset, context)
                     let parseResult = v.parse(bits, offset, context)

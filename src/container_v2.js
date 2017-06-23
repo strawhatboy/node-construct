@@ -1,7 +1,7 @@
 import _ from 'lodash'
-import os from 'os'
 import isCircular from 'is-circular'
 import Bits from 'buffer-bits'
+import { EOL } from 'os'
 
 export class Container {
 
@@ -40,7 +40,7 @@ export class Container {
     }
 
     toRichString(indent) {
-        let result = this.toString() + ' ' + os.EOL
+        let result = this.toString() + ' ' + EOL
         indent = indent || 1
         _.forIn(this, (item, key) => {
 
@@ -49,22 +49,8 @@ export class Container {
                     result += '\t'
                 }
                 result += `${key} = `
-                if (item === undefined) {
-                    result += 'undefined' 
-                } else if (_.isObject(item) && isCircular(item)) {
-                    result += '<circular detected>'
-                } else if (_.isFunction(item.toRichString)) {
-                    result += item.toRichString(indent + 1)
-                } else if (item instanceof Bits) {
-                    if (item.length <= 32) {
-                        result += item.toBinaryString() + ` (total ${item.length})`
-                    } else {
-                        result += _.truncate(item.toBinaryString(), { length: 32 }) + ` (total ${item.length})`
-                    }
-                } else {
-                    result += item
-                }
-                result += os.EOL
+                result += this._itemToRichString(item, indent)
+                result += EOL
             }
         })
         // for (let i = 0; i < this.length; i++) {
@@ -88,9 +74,42 @@ export class Container {
         //         } else {
         //             result += item
         //         }
-        //         result += os.EOL
+        //         result += EOL
         //     }
         // }
+        return result
+    }
+
+    _itemToRichString(item, indent) {
+        let result = ''
+        if (item === undefined) {
+            result += 'undefined' 
+        } else if (_.isObject(item) && isCircular(item)) {
+            result += '<circular detected>'
+        } else if (_.isFunction(item.toRichString)) {
+            result += item.toRichString(indent + 1)
+        } else if (item instanceof Bits) {
+            if (item.length <= 32) {
+                result += item.toBinaryString() + ` (total ${item.length})`
+            } else {
+                result += _.truncate(item.toBinaryString(), { length: 32 }) + ` (total ${item.length})`
+            }
+        } else if (_.isArray(item)) {
+            result += '['
+            let indentInArray = _.repeat('\t', indent)
+            let hasIndent = false
+            _.forEach(item, (v, k) => {
+                let itemString = this._itemToRichString(v, indent + 1)
+                result += itemString
+                hasIndent = itemString.endsWith(EOL)
+                if (k != item.length - 1) {
+                    result += (hasIndent ? indentInArray : '') + ', '
+                }
+            })
+            result += (hasIndent ? indentInArray : '') + ']'
+        } else  {
+            result += item
+        }
         return result
     }
 }
